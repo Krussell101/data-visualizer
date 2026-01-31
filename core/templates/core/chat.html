@@ -1,0 +1,98 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ session.title }} - Insight{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">{{ session.title }}</h2>
+                <span class="badge bg-secondary">{{ session.dataset.name }}</span>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Dataset:</strong> {{ session.dataset.name }}</p>
+                <p class="mb-0">
+                    <strong>Rows:</strong> {{ session.dataset.metadata.row_count|default:"N/A" }} |
+                    <strong>Columns:</strong> {{ session.dataset.metadata.column_count|default:"N/A" }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Chat History -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="h5 mb-0">Conversation</h3>
+            </div>
+            <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                <div id="chat-history">
+                    {% for query in queries %}
+                        {% include 'core/partials/chat_message.html' %}
+                    {% empty %}
+                        <p class="text-muted">No queries yet. Ask a question about your data below!</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Query Form -->
+        <div class="card">
+            <div class="card-body">
+                <form hx-post="{% url 'query' session.pk %}"
+                      hx-target="#chat-history"
+                      hx-swap="beforeend"
+                      hx-indicator="#spinner"
+                      hx-disabled-elt="button[type='submit']">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        {{ form.prompt }}
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="submit" class="btn btn-primary">
+                            Send Question
+                        </button>
+                        <div id="spinner" class="htmx-indicator">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2">Processing query...</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .htmx-indicator {
+        display: none;
+    }
+    .htmx-request .htmx-indicator {
+        display: inline-flex;
+        align-items: center;
+    }
+    .htmx-request button[type='submit'] {
+        opacity: 0.6;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-scroll chat to bottom when new messages arrive
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        if (event.detail.target.id === 'chat-history') {
+            const chatHistory = document.getElementById('chat-history');
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            // Clear the form
+            document.querySelector('textarea[name="prompt"]').value = '';
+        }
+    });
+</script>
+{% endblock %}

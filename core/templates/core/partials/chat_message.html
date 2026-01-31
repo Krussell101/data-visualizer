@@ -1,0 +1,36 @@
+<div class="mb-3">
+    <!-- User Prompt -->
+    <div class="d-flex justify-content-end mb-2">
+        <div class="card bg-primary text-white" style="max-width: 75%;">
+            <div class="card-body py-2 px-3">
+                <p class="mb-0">{{ query.prompt }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assistant Response -->
+    <div class="d-flex justify-content-start">
+        <div class="card" style="max-width: 75%;">
+            <div class="card-body py-2 px-3">
+                {% if query.status == 'success' %}
+                    {% if query.response_text %}
+                        <p class="mb-2">{{ query.response_text }}</p>
+                    {% endif %}
+
+                    {% if query.response_plot_json %}
+                        <div id="plot-{{ query.pk }}" style="width: 100%; height: 400px;"></div>
+                        <script>
+                            Plotly.newPlot('plot-{{ query.pk }}', {{ query.response_plot_json|safe }});
+                        </script>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-danger mb-0">
+                        <strong>Error:</strong> {{ query.error_message }}
+                    </div>
+                {% endif %}
+
+                <small class="text-muted">{{ query.created_at|date:"H:i" }}</small>
+            </div>
+        </div>
+    </div>
+</div>
