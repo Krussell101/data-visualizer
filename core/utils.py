@@ -1,18 +1,21 @@
 import functools
 import pandas as pd
-from anthropic import Anthropic
+from pandasai_litellm import LiteLLM
 from django.conf import settings
 
 
 @functools.lru_cache(maxsize=1)
 def get_llm_client():
     """
-    Singleton Anthropic client to avoid re-instantiation.
+    Singleton LLM client for PandasAI using LiteLLM.
 
     Returns:
-        Anthropic: Configured Anthropic client instance
+        LiteLLM: Configured LLM instance compatible with PandasAI
     """
-    return Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+    return LiteLLM(
+        model="claude-sonnet-4-5-20250929",
+        api_key=settings.ANTHROPIC_API_KEY,
+    )
 
 
 @functools.lru_cache(maxsize=32)
